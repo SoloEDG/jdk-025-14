@@ -8,6 +8,7 @@ import {
   revealCells,
   cycleMark,
   chordCells,
+  autoExploreSafe,
 } from "../features/exploration";
 import { inspectCell, activateShield } from "../features/tools";
 import { settle } from "../features/chronicle";
@@ -68,6 +69,9 @@ export function gameReducer(state: Workspace, c: Command): Workspace {
       break;
     case "chord":
       e = chordCells(e, c.id);
+      break;
+    case "autoExplore":
+      e = autoExploreSafe(e, c.cells);
       break;
     case "cell": {
       const cell = e.board.cells[c.id];

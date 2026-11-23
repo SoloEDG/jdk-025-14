@@ -746,6 +746,49 @@ main {
     0 0 0 1px #d4a06a,
     inset 0 0 13px #d7ac6a20;
 }
+/* 概率热力图：颜色随危险概率由绿到红 */
+.tile.heat.closed {
+  background: rgb(
+    var(--heat-r, 120) var(--heat-g, 150) var(--heat-b, 90) / 0.32
+  );
+  border-color: rgb(
+    var(--heat-r, 120) var(--heat-g, 150) var(--heat-b, 90) / 0.55
+  );
+}
+.tile.heat.closed:hover {
+  background: rgb(
+    var(--heat-r, 120) var(--heat-g, 150) var(--heat-b, 90) / 0.5
+  );
+}
+.tile .heat-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 600 11px/1 var(--mono);
+  color: #e8e6cf;
+  text-shadow: 0 1px 2px #101a12;
+  pointer-events: none;
+}
+/* 被完整枚举证明零风险：青色描边 + 对勾角标，区别于估计的低概率 */
+.tile.proven-safe.closed {
+  box-shadow:
+    0 0 0 2px #7fd0c4,
+    inset 0 0 14px #7fd0c438;
+}
+.tile.proven-safe.closed::after {
+  content: "✓";
+  position: absolute;
+  left: 2px;
+  top: 1px;
+  font-size: 9px;
+  color: #8fe0d3;
+  text-shadow: 0 1px 2px #101a12;
+}
+.tile.prob-pending.closed {
+  opacity: 0.82;
+}
 .tile:focus-visible {
   outline: 2px solid #dbbf77;
   outline-offset: 1px;
@@ -1132,6 +1175,163 @@ main {
   flex-shrink: 0;
   margin-top: 2px;
 }
+/* 旗标策略切换 */
+.flag-policy {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+.flag-policy button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 4px;
+  font-size: 8px;
+  border-radius: 3px;
+  border: 1px solid #45513a;
+  background: #172c1d70;
+  color: #8aa07c;
+  transition: all 0.15s;
+}
+.flag-policy button.active {
+  border-color: #a6ac76;
+  background: #50613c55;
+  color: #d4d8b0;
+}
+/* 冲突列表 */
+.conflict-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 0 12px;
+}
+.conflict-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  text-align: left;
+  width: 100%;
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px solid #8a5a3c;
+  background: #3a241870;
+  color: #d8a883;
+  font-size: 8px;
+  line-height: 1.6;
+}
+.conflict-item svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #d48a5e;
+}
+.conflict-item span {
+  flex: 1;
+}
+/* 求解方式徽标 */
+.solver-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  border-radius: 3px;
+  font-size: 7.5px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+.solver-badge.exact {
+  background: #2c443680;
+  border: 1px solid #4e7a5e;
+  color: #9fd0b2;
+}
+.solver-badge.estimate {
+  background: #4a3c2280;
+  border: 1px solid #8a713c;
+  color: #d8c083;
+}
+/* 概率双列 */
+.prob-lists {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.prob-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.prob-col > small {
+  font-size: 7px;
+  letter-spacing: 0.5px;
+  color: #6d8965;
+  margin-bottom: 2px;
+}
+.prob-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 7px;
+  border-radius: 2px;
+  border: 1px solid #405333;
+  background: #172c1d70;
+  font-size: 8px;
+  color: #c3cfae;
+}
+.prob-row.danger {
+  border-color: #6b4a33;
+}
+.prob-num {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: var(--mono);
+  font-weight: 600;
+}
+.prob-num i {
+  font-style: normal;
+  font-size: 6.5px;
+  font-weight: 400;
+  color: #8aa07c;
+}
+.prob-row.safe .prob-num {
+  color: #9fd0b2;
+}
+.prob-row.danger .prob-num {
+  color: #e0a87e;
+}
+/* 一键安全探索 */
+.auto-explore {
+  width: 100%;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px;
+  font-size: 9px;
+  border-radius: 3px;
+}
+.auto-explore em {
+  font-style: normal;
+  background: #ffffff22;
+  border-radius: 8px;
+  padding: 1px 7px;
+  font-size: 8px;
+}
+.auto-explore:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .tool-panel {
   margin-top: 22px;
   padding: 0 2px;
@@ -1413,6 +1613,16 @@ main {
   padding: 8px 13px;
   font-size: 9px;
   margin-left: auto;
+}
+.result-panel p.assist-record {
+  margin: -8px 0 14px;
+}
+.result-panel p.assist-record span {
+  color: #8fb8c9;
+  border: 1px solid #3f6575;
+  background: #1d324030;
+  border-radius: 3px;
+  padding: 4px 8px;
 }
 footer {
   display: flex;
@@ -2397,6 +2607,12 @@ footer > span:last-child {
   }
   footer svg {
     width: 11px;
+  }
+  .prob-lists {
+    flex-direction: column;
+  }
+  .tile .heat-label {
+    font-size: 9px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

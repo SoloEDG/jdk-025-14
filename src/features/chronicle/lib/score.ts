@@ -22,5 +22,6 @@ export function expeditionReport(e: Expedition, now: number): Report {
     used: e.used,
     mistakes: e.mistakes,
     endedAt: now,
+    assistUsed: e.assistUsed === true,
   };
 }

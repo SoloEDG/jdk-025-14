@@ -78,3 +78,31 @@ export function chordCells(e: Expedition, id: number): Expedition {
     ),
   );
 }
+
+/**
+ * 一键安全探索：只接受被完整枚举**证明零风险**的格。
+ * 抽样得到的低概率格不会出现在 provenSafeCells 中，从机制上杜绝
+ * “估计值当确定结论”。这里再做防御性检查，任何格不合法则整体拒绝。
+ */
+export function autoExploreSafe(e: Expedition, ids: number[]): Expedition {
+  if (!mayAct(e) || !e.board.generated || !ids.length) return e;
+  const legal = ids.every((id) => {
+    const c = e.board.cells[id];
+    return (
+      c &&
+      !c.revealed &&
+      c.mark !== "flag" &&
+      c.intel !== "danger" &&
+      !c.mine
+    );
+  });
+  if (!legal) return e;
+  const next = revealCells(e, ids);
+  if (next === e) return e;
+  const actions = next.actions.map((a, i) =>
+    i === next.actions.length - 1
+      ? { ...a, message: `概率辅助·${a.message}` }
+      : a,
+  );
+  return { ...next, assistUsed: true, actions };
+}

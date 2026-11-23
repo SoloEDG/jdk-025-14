@@ -134,6 +134,8 @@ function validExpedition(v: unknown): v is Expedition {
     )
   )
     return false;
+  if (v.assistUsed !== undefined && typeof v.assistUsed !== "boolean")
+    return false;
   const e = v as unknown as Expedition;
   const safe = e.board.cells.filter((c) => c.revealed && !c.mine).length;
   return (
@@ -161,7 +163,8 @@ function validReport(v: unknown): v is Report {
     ].every((k) => int(v[k])) &&
     Number(v.safe) <= Number(v.totalSafe) &&
     Array.isArray(v.relics) &&
-    v.relics.every((r) => ["sun", "vessel", "tablet"].includes(String(r)))
+    v.relics.every((r) => ["sun", "vessel", "tablet"].includes(String(r))) &&
+    (v.assistUsed === undefined || typeof v.assistUsed === "boolean")
   );
 }
 function validArchive(v: unknown): v is Archive {

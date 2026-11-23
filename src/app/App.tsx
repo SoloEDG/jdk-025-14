@@ -12,7 +12,7 @@ import {
   X,
   Save,
 } from "lucide-react";
-import type { Difficulty } from "../shared/types";
+import type { Difficulty, FlagPolicy } from "../shared/types";
 import { isTerminal } from "../shared/initial";
 import {
   RegionPanel,
@@ -21,7 +21,7 @@ import {
   region,
 } from "../features/terrain";
 import { ActionBar, ProgressStrip } from "../features/exploration";
-import { analyze, InferencePanel } from "../features/inference";
+import { InferencePanel, useProbability } from "../features/inference";
 import { ToolPanel } from "../features/tools";
 import { ChroniclePanel, ResultPanel } from "../features/chronicle";
 import { useGame } from "./useGame";
@@ -33,8 +33,17 @@ export function App() {
   const [help, setHelp] = useState(false);
   const [launch, setLaunch] = useState<Difficulty | null>(null);
   const [extract, setExtract] = useState(false);
-  const [hints, setHints] = useState(false);
-  const analysis = useMemo(() => analyze(publicBoard(e.board)), [e.board]);
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [flagPolicy, setFlagPolicy] = useState<FlagPolicy>("assume");
+  const pub = useMemo(() => publicBoard(e.board), [e.board]);
+  // 棋盘身份：种子 + 探险 id，新局时强制让旧概率失效
+  const boardKey = `${e.id}:${e.board.seed}`;
+  const { result, computing } = useProbability(
+    pub,
+    flagPolicy,
+    "exact",
+    boardKey,
+  );
   const r = region(e.board.difficulty);
   const report = state.doc.archive.reports.find((v) => v.id === e.id);
   return (
@@ -110,8 +119,9 @@ export function App() {
             <ProgressStrip expedition={e} />
             <BoardView
               expedition={e}
-              analysis={analysis}
-              showHints={hints}
+              probability={result}
+              computing={computing}
+              showHeatmap={showHeatmap}
               send={send}
             />
             <ActionBar
@@ -151,12 +161,16 @@ export function App() {
           </div>
           <aside className="right-column">
             <InferencePanel
-              analysis={analysis}
+              result={result}
+              computing={computing}
               expedition={e}
-              showHints={hints}
-              onHints={() => setHints(!hints)}
+              flagPolicy={flagPolicy}
+              showHeatmap={showHeatmap}
+              onFlagPolicy={setFlagPolicy}
+              onToggleHeatmap={() => setShowHeatmap((v) => !v)}
+              onAutoExplore={(cells) => send({ type: "autoExplore", cells })}
               onLocate={(id) => {
-                setHints(true);
+                setShowHeatmap(true);
                 document.getElementById("tile-" + id)?.focus();
                 document
                   .getElementById("tile-" + id)
@@ -194,7 +208,7 @@ export function App() {
           onConfirm={(difficulty, seed) => {
             send({ type: "new", difficulty, seed });
             setLaunch(null);
-            setHints(false);
+            setShowHeatmap(false);
           }}
         />
       )}

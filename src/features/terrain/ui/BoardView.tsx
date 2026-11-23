@@ -1,27 +1,36 @@
 import { useRef, useState } from "react";
 import { Pause, Play, MapPin, Maximize2, Flag, Gem } from "lucide-react";
-import type { Analysis, Expedition } from "../../../shared/types";
+import type { Expedition, ProbabilityResult } from "../../../shared/types";
 import type { Command } from "../../../shared/commands";
 import { isTerminal } from "../../../shared/initial";
 import { region } from "../model/regions";
 import { BoardCell } from "./BoardCell";
 export function BoardView({
   expedition: e,
-  analysis,
-  showHints,
+  probability,
+  computing,
+  showHeatmap,
   send,
 }: {
   expedition: Expedition;
-  analysis: Analysis;
-  showHints: boolean;
+  probability: ProbabilityResult | null;
+  computing: boolean;
+  showHeatmap: boolean;
   send: (c: Command) => void;
 }) {
   const [focus, setFocus] = useState(44);
   const wrap = useRef<HTMLDivElement>(null);
   const r = region(e.board.difficulty);
-  const hints = new Map(
-    showHints
-      ? [...analysis.safe, ...analysis.danger].map((h) => [h.cell, h.kind])
+  const stale = !!probability?.stale;
+  // 失效重算中的旧概率降透明度展示，提示它不再是当前结论
+  const probMap = new Map(
+    showHeatmap && probability && !probability.conflicts.length && !stale
+      ? probability.cells.map((c) => [c.cell, c])
+      : [],
+  );
+  const provenSafe = new Set(
+    probability && !stale && probability.mode === "exact"
+      ? probability.provenSafeCells
       : [],
   );
   const activeFocus = Math.min(focus, e.board.cells.length - 1);
@@ -125,7 +134,9 @@ export function BoardView({
                 cell={c}
                 width={e.board.width}
                 terminal={isTerminal(e.status)}
-                hint={hints.get(c.id)}
+                probability={probMap.get(c.id)}
+                provenSafe={provenSafe.has(c.id)}
+                computing={computing}
                 selected={c.id === activeFocus}
                 onOpen={() => {
                   setFocus(c.id);

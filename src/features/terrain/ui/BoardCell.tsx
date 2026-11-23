@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import {
   Flag,
   HelpCircle,
@@ -6,13 +7,15 @@ import {
   Gem,
   Eye,
 } from "lucide-react";
-import type { Cell } from "../../../shared/types";
+import type { Cell, CellProbability } from "../../../shared/types";
 import { coordinate } from "../../../shared/geometry";
 export function BoardCell({
   cell: c,
   width,
   terminal,
-  hint,
+  probability,
+  provenSafe,
+  computing,
   selected,
   onOpen,
   onMark,
@@ -22,7 +25,9 @@ export function BoardCell({
   cell: Cell;
   width: number;
   terminal: boolean;
-  hint: "safe" | "danger" | undefined;
+  probability: CellProbability | undefined;
+  provenSafe: boolean;
+  computing: boolean;
   selected: boolean;
   onOpen: () => void;
   onMark: () => void;
@@ -60,7 +65,20 @@ export function BoardCell({
             ? "探针确认安全，未探索"
             : c.intel === "danger"
               ? "探针确认危险，未探索"
-              : "未探索";
+              : probability
+                ? `未探索，估计危险概率 ${(probability.p * 100).toFixed(1)}%${
+                    provenSafe ? "，已证明零风险" : ""
+                  }`
+                : "未探索";
+  // 热力颜色：绿（低）→ 琥珀 → 红（高），用 CSS 变量驱动
+  const heatStyle = probability
+    ? ({
+        ["--heat" as string]: probability.p.toFixed(3),
+        ["--heat-r" as string]: Math.round(120 + probability.p * 120),
+        ["--heat-g" as string]: Math.round(150 - probability.p * 90),
+        ["--heat-b" as string]: Math.round(90 - probability.p * 50),
+      } as CSSProperties)
+    : undefined;
   return (
     <button
       role="gridcell"
@@ -68,6 +86,7 @@ export function BoardCell({
       tabIndex={selected ? 0 : -1}
       aria-label={label}
       data-cell={c.id}
+      style={heatStyle}
       className={[
         "tile",
         c.revealed ? "open" : "closed",
@@ -75,7 +94,9 @@ export function BoardCell({
         c.revealed ? "terrain-" + c.terrain : "",
         c.mark === "flag" ? "flagged" : "",
         c.intel !== "unknown" ? "intel-" + c.intel : "",
-        hint ? "hint-" + hint : "",
+        probability ? "heat" : "",
+        provenSafe ? "proven-safe" : "",
+        computing ? "prob-pending" : "",
         selected ? "tile-selected" : "",
         c.revealed && !c.mine ? "number-" + c.adjacent : "",
       ].join(" ")}
@@ -112,7 +133,11 @@ export function BoardCell({
       {!c.revealed &&
         c.mark === "none" &&
         c.intel === "unknown" &&
+        !probability &&
         c.id % 13 === 0 && <span className="glyph">⌑</span>}
+      {probability && !c.revealed && c.mark === "none" && (
+        <span className="heat-label">{Math.round(probability.p * 100)}</span>
+      )}
       {c.intel !== "unknown" && !c.revealed && (
         <Eye className="intel-badge" size={7} />
       )}

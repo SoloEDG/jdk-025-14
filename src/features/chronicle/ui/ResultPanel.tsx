@@ -4,6 +4,7 @@ import {
   Footprints,
   Gem,
   TriangleAlert,
+  ScanSearch,
 } from "lucide-react";
 import type { Report } from "../../../shared/types";
 export function ResultPanel({
@@ -45,6 +46,14 @@ export function ResultPanel({
           触发陷阱 {report.mistakes}
         </span>
       </p>
+      {report.assistUsed && (
+        <p className="assist-record">
+          <span>
+            <ScanSearch size={12} />
+            本局使用过概率辅助（一键安全探索）
+          </span>
+        </p>
+      )}
       <button className="primary" onClick={onNew}>
         开启新的探险
         <ArrowUpRight size={14} />
